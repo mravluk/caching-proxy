@@ -53,7 +53,7 @@ public class HttpServerCreator {
                 }
 
                 //Not cached response - need to forward the request to the origin, then if everything is okay save it..
-                URL originUrl = URI.create(origin + requestUri.substring(1)).toURL();
+                URL originUrl = URI.create(origin + requestUri).toURL();
                 HttpURLConnection connection = (HttpURLConnection) originUrl.openConnection();
 
                 connection.setRequestMethod(exchange.getRequestMethod());

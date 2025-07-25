@@ -19,25 +19,25 @@ public class CachingProxyCommands {
     public String cachingProxy(
             @ShellOption(value = "--port", defaultValue = ShellOption.NULL, arity = 1) Integer port,
             @ShellOption(value = "--origin", defaultValue = ShellOption.NULL, arity = 1) String origin,
-            @ShellOption(value = "--clear-cache", defaultValue = ShellOption.NULL, arity = 0) Boolean clearCache){
+            @ShellOption(value = "--clear-cache", defaultValue = ShellOption.NULL, arity = 0) Boolean clearCache) {
 
-        if (clearCache != null && port == null && origin == null){
+        if (clearCache != null && port == null && origin == null) {
             if (httpServer != null) {
                 httpServerCreator.clearCache();
                 return "Clearing the cache..";
-            }
-            else
+            } else
                 return "ERROR: Can not clear the cache as the server isn't created/started!";
-        }
-        else if (clearCache == null && port != null && origin != null) {
+        } else if (clearCache == null && port != null && origin != null) {
             if (httpServer == null)
                 httpServer = httpServerCreator.startProxyServer(port, origin);
             else
                 return String.format("Can't create another server as one already exists at %s", httpServer.getAddress());
             return String.format("This is caching proxy command that creates a proxy server %s on port %d.",
                     origin, port);
-        }
-        else
+        } else if (clearCache == null && port == null && origin == null) {
+            return "Current options for the use of caching proxy:\nCreating proxy server at <origin>:<port>: --port " +
+                    "<port> --origin <origin>\nClearing the cache: --clear-cache";
+        } else
             return "ERROR: Nothing is done. Use either --clear-cache or --port and --origin instead.";
     }
 }
