@@ -1,9 +1,6 @@
 package com.roadmaphs.caching_proxy.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Map;
 
@@ -11,6 +8,7 @@ import java.util.Map;
 @Setter
 @Builder
 @AllArgsConstructor
+@ToString
 public class CachedResponse {
     private byte[] body;
     private int responseCode;

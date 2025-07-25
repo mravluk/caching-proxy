@@ -1,0 +1,5 @@
+1753442575137:help
+1753442592311:caching-proxy --clear-cache
+1753442611567:caching-proxy --port 3000
+1753442669072:caching-proxy --port 3000 --origin http://dummyjson.com
+1753443060287:caching-proxy --clear-cache
