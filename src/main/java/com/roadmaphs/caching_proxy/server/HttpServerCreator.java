@@ -68,7 +68,10 @@ public class HttpServerCreator {
                 Map<String, String> headers = new HashMap<>();
 
                 connection.getHeaderFields().forEach(
-                        (key, values) -> headers.put(key, String.join(",", values))
+                        (key, values) -> {
+                                if (key != null)
+                                    headers.put(key, String.join(",", values));
+                        }
                 );
 
                 InputStream inputStream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream();
@@ -98,7 +101,8 @@ public class HttpServerCreator {
             OutputStream outputStream = exchange.getResponseBody();
             outputStream.write(response.getBody());
             outputStream.close();
-            logger.info("Successfully sent the response back to the client!\nResponse: {}", response);
+            logger.info("Successfully sent the response back to the client!\nResponseHeader(X-Cache): {}",
+                    exchange.getResponseHeaders().get("X-Cache"));
         }
         catch (IOException e){
             logger.error("Can't send response back to the client: {}", e.getMessage());
