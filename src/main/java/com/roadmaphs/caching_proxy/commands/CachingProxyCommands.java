@@ -1,6 +1,6 @@
 package com.roadmaphs.caching_proxy.commands;
 
-import com.roadmaphs.caching_proxy.server.HttpServerCreator;
+import com.roadmaphs.caching_proxy.server.ProxyServerCreator;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class CachingProxyCommands {
     private final UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_2_SLASHES);
 
     @Autowired
-    private HttpServerCreator httpServerCreator;
+    private ProxyServerCreator proxyServerCreator;
 
     @ShellMethod(value = "To create a proxy server and clear cache.")
     public String cachingProxy(
@@ -29,7 +29,7 @@ public class CachingProxyCommands {
         String commandResponse;
         if (clearCache != null && port == null && origin == null) {
             if (proxyServer != null) {
-                httpServerCreator.clearCache();
+                proxyServerCreator.clearCache();
                 logger.info("Successfully cleared the cache.");
                 commandResponse = "Cleared the cache.";
             } else {
@@ -44,7 +44,7 @@ public class CachingProxyCommands {
                 logger.error("ERROR: Origin address is not valid!");
                 commandResponse = "ERROR: Origin address is not valid!";
             } else if (proxyServer == null) {
-                proxyServer = httpServerCreator.startProxyServer(port, origin);
+                proxyServer = proxyServerCreator.startProxyServer(port, origin);
                 commandResponse = String.format("This is caching proxy command that creates a proxy server %s on " +
                         "port %d.", origin, port);
             } else {

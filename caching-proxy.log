@@ -10,3 +10,7 @@
 1753467894107:caching-proxy --clear-cache
 1753467994526:caching-proxy --port 3000 --origin http://dummyjson.com
 1753468105406:caching-proxy --clear-cache
+1753557706337:caching-proxy
+1753557748758:caching-proxy --port 3000 --origin http://dummyjson.com
+1753558150100:caching-proxy --clear-cache
+1753558171648:exit

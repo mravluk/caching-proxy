@@ -20,24 +20,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class HttpServerCreator {
+public class ProxyServerCreator {
 
-    private final static Logger logger = LoggerFactory.getLogger(HttpServerCreator.class);
+    private final static Logger logger = LoggerFactory.getLogger(ProxyServerCreator.class);
     private Map<String, CachedResponse> cache = new ConcurrentHashMap<>();
-
-    HttpServer httpServer = null;
+    HttpServer proxyServer = null;
 
     public HttpServer startProxyServer(Integer port, String origin) {
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-            createContextForAllRequests(httpServer, origin);
-            httpServer.start();
+            proxyServer = HttpServer.create(new InetSocketAddress(port), 0);
+            createContextForAllRequests(proxyServer, origin);
+            proxyServer.start();
             logger.info("Successfully started HTTP proxy server at {}:{}", origin, port);
         }
         catch (IOException e) {
             logger.error("Can't create a server at given origin and port: " + e.getMessage());
         }
-        return httpServer;
+        return proxyServer;
     }
 
     private void createContextForAllRequests(HttpServer httpServer, String origin) {
@@ -53,43 +52,52 @@ public class HttpServerCreator {
                 }
 
                 //Not cached response - need to forward the request to the origin, then if everything is okay save it..
-                URL originUrl = URI.create(origin + requestUri).toURL();
-                HttpURLConnection connection = (HttpURLConnection) originUrl.openConnection();
-
-                connection.setRequestMethod(exchange.getRequestMethod());
-                exchange.getRequestHeaders().forEach(
-                        (key, values) -> {
-                            if (!key.equalsIgnoreCase("Host")){
-                                values.forEach(value -> connection.addRequestProperty(key, value));
-                            }
-                        }
-                );
-                int responseCode = connection.getResponseCode();
-                Map<String, String> headers = new HashMap<>();
-
-                connection.getHeaderFields().forEach(
-                        (key, values) -> {
-                                if (key != null)
-                                    headers.put(key, String.join(",", values));
-                        }
-                );
-
-                InputStream inputStream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream();
-                byte[] requestBody = inputStream != null ? inputStream.readAllBytes() : new byte[0];
-
-                if (inputStream != null)
-                    inputStream.close();
-                //cache the response then send response
-                CachedResponse responseToClient = new CachedResponse(requestBody, responseCode, headers);
-
+                HttpURLConnection connection = createHttpURLConnection(origin, exchange, requestUri);
+                CachedResponse responseToClient = createCachedResponse(connection);
                 cache.put(requestUri, responseToClient);
                 sendResponse(exchange, responseToClient, false);
+
                 connection.disconnect();
                 logger.info("Request successfully handled!");
             } catch (IOException e) {
                 sendError(exchange, "Error forwarding request: " + e.getMessage());
             }
         });
+    }
+
+    private static HttpURLConnection createHttpURLConnection(String origin, HttpExchange exchange, String requestUri) throws IOException {
+        URL originUrl = URI.create(origin + requestUri).toURL();
+        HttpURLConnection connection = (HttpURLConnection) originUrl.openConnection();
+
+        connection.setRequestMethod(exchange.getRequestMethod());
+        exchange.getRequestHeaders().forEach(
+                (key, values) -> {
+                    if (!key.equalsIgnoreCase("Host")){
+                        values.forEach(value -> connection.addRequestProperty(key, value));
+                    }
+                }
+        );
+        return connection;
+    }
+
+    private static CachedResponse createCachedResponse(HttpURLConnection connection) throws IOException {
+        int responseCode = connection.getResponseCode();
+        Map<String, String> headers = new HashMap<>();
+
+        connection.getHeaderFields().forEach(
+                (key, values) -> {
+                        if (key != null)
+                            headers.put(key, String.join(",", values));
+                }
+        );
+
+        InputStream inputStream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream();
+        byte[] requestBody = inputStream != null ? inputStream.readAllBytes() : new byte[0];
+
+        if (inputStream != null)
+            inputStream.close();
+        //cache the response then send response
+        return new CachedResponse(requestBody, responseCode, headers);
     }
 
 
@@ -125,9 +133,9 @@ public class HttpServerCreator {
 
     @PreDestroy
     public void stopServer() {
-        if (httpServer != null) {
-            httpServer.stop(0); // Stop immediately
-            httpServer = null;
+        if (proxyServer != null) {
+            proxyServer.stop(0); // Stop immediately
+            proxyServer = null;
             logger.info("Caching proxy server stopped.");
         }
     }
