@@ -53,8 +53,8 @@ public class CachingProxyCommands {
                         proxyServer.getAddress());
             }
         } else if (clearCache == null && port == null && origin == null) {
-            commandResponse = "Current options for the use of caching proxy:\nCreating proxy server at " +
-                    "<origin>:<port>: --port <port> --origin <origin>\nClearing the cache: --clear-cache";
+            commandResponse = "Current options for the use of caching proxy:\nCreating proxy server: " +
+                    "\n\t--port <port> --origin <origin>\nClearing the cache:\n\t--clear-cache";
         } else {
             logger.error("ERROR: Nothing is done. Use either --clear-cache or --port and --origin instead.");
             commandResponse = "ERROR: Nothing is done. Use either --clear-cache or --port and --origin instead.";
